@@ -1,0 +1,34 @@
+studyName,sampleSize,num_significant_fdr05
+Berboth2021_rating_resliced.nii                  ,25,0
+Brehl2020_rating_resliced.nii                    ,242,149
+Burghart+SchmidtUnpublished_rating_resliced.nii  ,31,0
+Gaebler2014_rating_resliced.nii                  ,23,0
+Gianaros2020-AHAB-II_rating_resliced.nii         ,163,0
+Gianaros2020-PIP_rating_resliced.nii             ,176,276
+Glosemeyer2020_rating_resliced.nii               ,15,0
+Guendelman&DziobekUnpublished_rating_resliced.nii,55,0
+HunekeUnpublished_rating_resliced.nii            ,18,0
+Jentsch2019_rating_resliced.nii                  ,30,0
+KimUnpublished_rating_resliced.nii               ,40,0
+LaBarUnpublished_rating_resliced.nii             ,53,0
+MarinMorales2021_rating_resliced.nii             ,29,0
+MinUnpublished_rating_resliced.nii               ,105,0
+Morawetz2016a_rating_resliced.nii                ,23,0
+Morawetz2019_rating_resliced.nii                 ,29,0
+Morawetz2020_rating_resliced.nii                 ,35,0
+Morawetz2021_rating_resliced.nii                 ,37,0
+MuellerPinzlerUnpublished_rating_resliced.nii    ,15,0
+MulejBratec2015_rating_resliced.nii              ,20,0
+NetaUnpublished_rating_resliced.nii              ,110,0
+Paschke2016_rating_resliced.nii                  ,115,0
+PowersUnpublished_rating_resliced.nii            ,40,0
+Rehbein2021a_rating_resliced.nii                 ,15,0
+Rehbein2021b_rating_resliced.nii                 ,16,0
+Sandner2021_rating_resliced.nii                  ,38,0
+SidorenkoUnpublished_rating_resliced.nii         ,139,0
+SokolowskiUnpublished_rating_resliced.nii        ,83,0
+Steward2021_rating_resliced.nii                  ,92,0
+VanReekum2021_rating_resliced.nii                ,62,0
+VanReekumUnpublished_rating_resliced.nii         ,20,0
+WessaUnpublished_rating_resliced.nii             ,89,0
+Morawetz2016b_rating_resliced.nii                ,59,0

@@ -15,7 +15,11 @@ test <- cor.test(df_new[,1], df_new[,2], "greater")
 
 t_value <- test$statistic
 
-R2 = t_value^2 / (t_value^2 + 100 - 2)
-sqrt(R2)
+R = t_value / sqrt((t_value^2 + 100 - 2))
+
+
+R = t_value / sqrt((t_value^2 + sample_sizes))
+
+
 
 

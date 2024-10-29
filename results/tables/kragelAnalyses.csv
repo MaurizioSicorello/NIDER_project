@@ -1,0 +1,19 @@
+Domain,Subdomain,imagenames,Studynumber,Orig_Studynumber,StudyCodes,corrMean,corrSD
+Cog_control,Inhibition,Cog Inhib1,9,18,Aron_2007_RespSel,0.0511179920561769,0.328545742687863
+Cog_control,Inhibition,Cog Inhib2,10,5,Xue_2008_RespSel,0.0243565204618495,0.329342540890285
+Cog_control,ResponseSelect,Cog RespSel1,11,6,ds101_SimonConflict_NYU,0.292568929057526,0.284354210256278
+Cog_control,ResponseSelect,Cog RespSel2,12,7,Kelly_2008_Flanker,0.416830091646919,0.326513815587542
+Cog_control,WorkingMem,Cog WM1,7,16,DeYoung_2009_WM,0.659754484609354,0.205876615001902
+Cog_control,WorkingMem,Cog WM2,8,17,vanAst_2016_WM,0.454962293850678,0.246308299692954
+Neg_Emotion,Images,Emotion_Aversiveimages1,13,8,Gianaros_2014_IAPS,0.290548888956276,0.281062550915876
+Neg_Emotion,Images,Emotion_Aversiveimages2,14,9,Yarkoni_2011_IAPS,0.370132383800694,0.288164285974107
+Neg_Emotion,Social,Emotion_Rejection1,15,1,Kross_2011_Rejection,0.277561463432557,0.274466147961835
+Neg_Emotion,Social,Emotion_VicariousPain2,16,2,Krishnan_2016_VicariousPain,0.408496351959249,0.237395471866909
+Neg_Emotion,Sounds,Emotion_AversiveSound1,17,3,Losin_Geuter_2018_BMRK5_IADS,0.42322539687021,0.235941660087308
+Neg_Emotion,Sounds,Emotion_AversiveSound2,18,4,Kragel_PM01_IADS,0.301362027988918,0.262341356591369
+Pain,Mechanical,MechanicalPain1,5,14,Ceko_Woo_MPA1_Mech,0.35407912102633,0.279768105473269
+Pain,Mechanical,MechanicalPain2,6,15,Ceko_MPA2_Mech,0.423773813369159,0.249972347572613
+Pain,Thermal,ThermalPain1,1,10,Atlas_2010_EXP,0.275957930825201,0.276885115124278
+Pain,Thermal,ThermalPain2,2,11,Wager_2013_BMRK3,0.545191854920871,0.226014808295658
+Pain,Visceral,VisceralPain1,3,12,Kano_2017_Rectal,0.575691088700738,0.210917830689835
+Pain,Visceral,VisceralPain2,4,13,Rubio_2015_Rectal,0.541373131784153,0.264505102959498

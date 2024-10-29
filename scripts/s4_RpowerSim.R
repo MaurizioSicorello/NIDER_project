@@ -15,6 +15,7 @@ library("corpcor")
 library("Hmisc")
 library("ggplot2")
 source(here("functions", "metaPoweR.R"))
+
 df <- read_excel(here::here("data", "studyInformation", "studyInformation_publication.xlsx"))
 
 # Load necessary package

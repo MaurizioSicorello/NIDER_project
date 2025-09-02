@@ -90,6 +90,7 @@ studyNames_quest = cell2table(studyNames_quest, "VariableNames", ["imageNameStem
 sampleSize_fMRIOrder = join(studyNames_quest, sampleSizes);
 fmriData_quest.covariates = sampleSize_fMRIOrder.sampleSizeQuest;
 
+%setdiff(studyNames_quest.imageNameStem, sampleSizes.imageNameStem)
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 % Quality Control
@@ -165,6 +166,12 @@ netTwoAverage = apply_mask(fmriData_quest_clean, morawetzTwo);
 netTwoAverage = mean(netTwoAverage.dat);
 random_effects_meta_analysis(netTwoAverage', fmriData_quest_clean.covariates)
 
+% write data for Bayesian analyses
+study = cellstr(fmriData_quest_clean.image_names);
+NOI_outTable = table(study, fmriData_quest_clean.covariates, netOneAverage', netTwoAverage', ...
+    'VariableNames', {'study','sampleSize','networkOne','networkTwo'});
+writetable(NOI_outTable, '../../results/bayesfactors/NOI_quest.csv');
+
 % perform whole-brain meta-analysis
 metaResults_quest = fmri_meta_analysis(fmriData_quest_clean)
 
@@ -193,6 +200,17 @@ tauImage_quest_fdr05 = threshold(tauImage_quest_grayMasked_minStud, .05, 'fdr')
 
 writetable(table(effectSizeImage_quest_grayMasked_minStud.dat, tauImage_quest_grayMasked_minStud.dat, 'VariableNames', ["effectSizes_quest", "tau_quest"]), 'quest_effectSizes.csv')
 
+%%%%% export Network data for Bayesian analyses and load for inspection
+fmriData_netAll = apply_mask(fmriData_quest_clean, netMaskAll)
+
+datVarNames = arrayfun(@num2str, 1:size(fmriData_netAll.dat',2), 'UniformOutput', false);
+datTable = array2table(fmriData_netAll.dat', 'VariableNames', datVarNames);
+datTable{:,:}(datTable{:,:} == 0) = NaN;
+WB_outTable = [table(study, fmriData_quest_clean.covariates), datTable];
+WB_outTable.Properties.VariableNames{2} = 'sampleSize';  
+writetable(WB_outTable, '../../results/bayesfactors/WB_quest.csv');
+
+
 % questReg = region(tauImage_quest_fdr05)
 % table(questReg)
 % 
@@ -214,9 +232,6 @@ jackknife_quest = fmri_meta_analysis_jackknife(fmriData_quest_clean, gray_mask =
 cd('../../results/tables')
 writetable(jackknife_quest, 'jackknife_questionnaire.csv')
 
-
-% CONTINUE HERE. sensitivity analyses with
-% power calculations. correct for variance restriction
 
 
 

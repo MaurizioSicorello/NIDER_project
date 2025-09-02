@@ -14,10 +14,15 @@ library("renv")
 library("here")
 library("readxl")
 library("stringr")
+library("dplyr")
 library("meta")
+library("metafor")
 library("WebPower")
 library("eulerr")
 library("flextable")
+library("metaBMA")
+library("ggplot2")
+source(here("functions", "metaPoweR.R"))
 
 
 df <- read_excel(here::here("data", "studyInformation", "studyInformation_publication.xlsx"))
@@ -69,7 +74,69 @@ morawetzRows <- dfcorrs[dfcorrs$`image name stem` == "Morawetz2016b", ][1:2, 5:7
 dfcorrs[which(dfcorrs$`image name stem` == "Morawetz2016b")[1], 5:7] <- as.list(apply(morawetzRows, 2, function(x) {as.character(mean(as.numeric(x)))}))
 dfcorrs <- dfcorrs[-which(dfcorrs$`image name stem` == "Morawetz2016b")[2], ]
 
-onlineRatings <- !dfcorrs$`image name stem` %in% c("Diers2021", "GaertnerDiersUnpublished", "HofhanselUnpublished")
+dfcorrs <- dfcorrs %>%
+  dplyr::mutate(formatted_author = if_else(
+    str_detect(`image name stem`, "\\d"),
+    str_replace(`image name stem`, "^([A-Za-z\\+]+)(\\d.*)", "\\1 et al. (\\2)"),
+    `image name stem`  
+  ))
+
+# Create a named vector for mapping
+author_mapping <- c(
+  "Benzait et al. (2023)" = "Benzait et al. (2023)",
+  "Berboth et al. (2021)" = "Berboth et al. (2021)",
+  "Brehl et al. (2020)" = "Brehl et al. (2021; partially unpublished)",
+  "Burghart+SchmidtUnpublished" = "Burghart et al. (unpublished)",
+  "Diers et al. (2021)" = "Diers, Gärtner et al. (2023)",
+  "Doerfel et al. (2014a)" = "Dörfel et al. (2014; distancing)",
+  "Doerfel et al. (2014b)" = "Dörfel et al. (2014; reinterpretation)",
+  "Gaebler et al. (2014)" = "Gaebler et al. (2014)",
+  "GaertnerDiersUnpublished" = "Scheffel et al. (2019)",
+  "Gianaros et al. (2020-AHAB-II)" = "Gianaros et al. (2020; AHAB-II)",
+  "Gianaros et al. (2020-PIP)" = "Gianaros et al. (2020; PIP)",
+  "Glosemeyer et al. (2020)" = "Glosemeyer et al. (2020)",
+  "HofhanselUnpublished" = "Hofhansel et al. (2023)",
+  "Jentsch et al. (2019)" = "Jentsch et al. (2019)",
+  "PowersUnpublished" = "Powers et al. (2022)",
+  "WessaUnpublished" = "Wessa et al. (unpublished)",
+  "KimUnpublished" = "Kim et al. (unpublished)",
+  "LaBarUnpublished" = "LaBar et al. (unpublished)",
+  "MarinMorales et al. (2021)" = "Marín-Morales et al. (2022)",
+  "MinUnpublished" = "Min et al. (2022)",
+  "Morawetz et al. (2016a)" = "Morawetz et al. (2016)",
+  "Morawetz et al. (2016b)" = "Morawetz et al. (2016; pictures)",
+  "Morawetz et al. (2019)" = "Morawetz et al. (2016; videos)",
+  "Morawetz et al. (2020)" = "Morawetz et al. (2019)",
+  "Morawetz et al. (2021)" = "Morawetz et al. (2020)",
+  "MulejBratec et al. (2015)" = "Morawetz et al. (2021)",
+  "MuellerPinzlerUnpublished" = "Mulej Bratec et al. (2015)",
+  "HunekeUnpublished" = "Müller-Pinzler et al. (unpublished)",
+  "NetaUnpublished" = "Huneke et al. (unpublished)",
+  "Paschke et al. (2016)" = "Pierce et al. (2022)",
+  "Rehbein et al. (2021a)" = "Rehbein et al. (2021; sample 1)",
+  "Rehbein et al. (2021b)" = "Rehbein et al. (2021; sample 2)",
+  "Sandner et al. (2021)" = "Sandner et al. (2021)",
+  "SidorenkoUnpublished" = "Doren et al. (unpublished)",
+  "Guendelman&DziobekUnpublished" = "Guendelman et al. (2022)",
+  "SokolowskiUnpublished" = "Sokolowski et al. (2022)",
+  "Steward et al. (2021)" = "Steward et al. (2021)",
+  "VanReekum et al. (2021)" = "Lloyd et al. (2021)",
+  "VanReekumUnpublished" = "Tupitsa et al. (2023)"
+)
+
+dfcorrs <- dfcorrs %>%
+  mutate(
+    cleaned_author = ifelse(
+      `formatted_author` %in% names(author_mapping),
+      author_mapping[formatted_author],
+      formatted_author
+    )
+  )
+
+dfcorrs$`image name stem` <- dfcorrs$cleaned_author
+onlineRatings <- !dfcorrs$`image name stem` %in% c("Diers, Gärtner et al. (2023)", "Scheffel et al. (2019)" , "Hofhansel et al. (2023)")
+#onlineRatings <- !dfcorrs$`image name stem` %in% c("Diers2021", "GaertnerDiersUnpublished", "HofhanselUnpublished")
+
 
 #######################################
 # Questionnaires and self reports
@@ -89,6 +156,36 @@ meta::forest(meta_questSelf)
 dev.off() 
 
 
+# Bayes factors
+# tau prior based on https://openpsychologydata.metajnl.com/articles/10.5334/jopd.33
+# r prior based on: Effect size guidelines for individual differences researchers &
+# Efficient alternatives for Bayesian hypothesis tests in psychology
+
+dfQuestSelf$questSelfRating <- as.numeric(dfQuestSelf$questSelfRating) 
+dfQuestSelf$'sample size quest' <- as.numeric(dfQuestSelf$'sample size quest')
+
+dfQuestSelf_conv <- escalc(measure="ZCOR", ri=questSelfRating, ni=dfQuestSelf$'sample size quest', data=dfQuestSelf)
+dfQuestSelf_conv$vi_sqrt <- sqrt(dfQuestSelf_conv$vi)
+
+tau2 <- 0.2^2/2
+effSize_prior_oneSide <- prior("custom", function(x) x^2/tau2 * dnorm(x, sd=sqrt(tau2)), 0, 1)
+effSize_prior_twoSide <- prior("custom", function(x) x^2/tau2 * dnorm(x, sd=sqrt(tau2)), -1, 1)
+tau_prior <- prior("t", c(location=0, scale=.15, nu=1), lower=0, upper=1)
+
+
+Bmeta_questSelf <- meta_bma(y=yi, SE=vi_sqrt, data=dfQuestSelf_conv,
+                            d = effSize_prior_twoSide,
+                            tau = tau_prior,
+                            iter = 8000, logml_iter = 5000, rel.tol = .1, summarize="integrate")
+Bmeta_questSelf
+
+
+
+plot(effSize_prior_twoSide, xaxt = "n")
+axis(1, at = seq(-1, 1, by = 0.1))
+
+plot(tau_prior, xaxt = "n")
+axis(1, at = seq(0, 1, by = 0.1))
 
 
 #######################################
@@ -107,6 +204,18 @@ png(file=here("results", "figures", "forestplot_amyQuest.png"), width = 800, hei
 meta::forest(meta_amyQuest)
 dev.off() 
 
+# Bayes factors
+dfAmyQuest$amyQuestCorr <- as.numeric(dfAmyQuest$amyQuestCorr) 
+
+dfAmyQuest_conv <- escalc(measure="ZCOR", ri=amyQuestCorr, ni=dfAmyQuest$'sample size quest', data=dfAmyQuest)
+dfAmyQuest_conv$vi_sqrt <- sqrt(dfAmyQuest_conv$vi)
+
+Bmeta_amyQuest <- meta_bma(y=yi, SE=vi_sqrt, data=dfAmyQuest_conv,
+                            d = effSize_prior_twoSide,
+                            tau = tau_prior,
+                            iter = 8000, logml_iter = 5000, rel.tol = .1, summarize="integrate")
+
+Bmeta_amyQuest
 
 
 #######################################
@@ -130,6 +239,84 @@ wp.correlation(r = meta_amySelf$TE.random, power = 0.8)
 mean(sapply(meta_amySelf$n, function(x){wp.correlation(n = x, meta_amySelf$TE.random)$power}))
 sd(sapply(meta_amySelf$n, function(x){wp.correlation(n = x, meta_amySelf$TE.random)$power}))
 median(meta_amySelf$n)
+
+
+# Bayes factors
+dfAmySelf$amySelfRating <- as.numeric(dfAmySelf$amySelfRating) 
+
+dfAmySelf_conv <- escalc(measure="ZCOR", ri=amySelfRating, ni=dfAmySelf$'sample size quest', data=dfAmySelf)
+dfAmySelf_conv$vi_sqrt <- sqrt(dfAmySelf_conv$vi)
+
+Bmeta_amySelf <- meta_bma(y=yi, SE=vi_sqrt, data=dfAmySelf_conv,
+                           d = effSize_prior_twoSide,
+                           tau = tau_prior,
+                           iter = 8000, logml_iter = 5000, rel.tol = .1, summarize="integrate")
+
+Bmeta_amySelf
+
+
+
+#######################################
+# plot power curve
+
+metaPower(effectSize = 0.2, sampleSizes = as.numeric(meta_questSelf$n), tau = meta_amyQuest$tau)
+
+
+# grid of effect sizes
+eff <- seq(0, 1, length.out = 201)
+
+# helper to build one curve; coerces n to numeric just in case
+curve_df <- function(model, label) {
+  n_vec <- as.numeric(model$n)
+  pow <- vapply(eff, function(e) {
+    res <- metaPower(effectSize = e, sampleSizes = n_vec, tau = model$tau)
+    # Prefer $randomPower; fall back to $random or first numeric if needed
+    if (!is.null(res$randomPower)) {
+      as.numeric(res$randomPower)
+    } else if (!is.null(res$random)) {
+      as.numeric(res$random)
+    } else {
+      as.numeric(res[[1]])
+    }
+  }, numeric(1))
+  data.frame(effect = eff, power = pow, model = label)
+}
+
+
+
+# build curves
+df <- rbind(
+  curve_df(meta_questSelf, "questSelf"),
+  curve_df(meta_amyQuest,  "amyQuest"),
+  curve_df(meta_amySelf,   "amySelf")
+)
+
+# plot
+ggplot(df, aes(effect, power, color = model)) +
+  geom_line(linewidth = 1) +
+  geom_hline(yintercept = 0.80, color = "blue", linetype = "dashed") +
+  geom_vline(xintercept = 0.10, color = "red", linetype = "dashed") +
+  scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
+  scale_color_discrete(
+    breaks = c("amyQuest", "amySelf", "questSelf"),
+    labels = c(
+      "amyQuest"  = "Amygdala/Questionnaires",
+      "amySelf"   = "Amygdala/Ratings",
+      "questSelf" = "Questionnaires/Ratings"
+    )
+  ) +
+  labs(x = "Effect size", y = "Power", color = "Model",
+       title = "Meta-analytic power curves") +
+  theme_classic() +
+  theme(
+    legend.position = c(0.98, 0.02),   # inside, bottom-right
+    legend.justification = c(1, 0),
+    legend.background = element_rect(fill = "white", colour = "grey80")
+  )
+
+ggsave(here("results", "figures", "overlap_powerCurved.svg"), width = 7, height = 4.5, units = "in", dpi = 300)
+
 
 
 
@@ -177,6 +364,17 @@ defineOverlap = c(
   "Questionnaire&Amygdala" = round(EG*100,3),# Overlap between Questionnaire and Self-Rating     # Overlap between Questionnaire and Amygdala
   "Self-Rating&Amygdala" = round(FG*100,2) # Overlap between Self-Rating and Amygdala
 )
+
+defineOverlap = c(
+  "Trait\nquestionnaires" = 100,
+  "Task-based\naffective ratings" = 100,
+  "Amygdala\ndown-regulation" = 100,
+  "Trait\nquestionnaires&Task-based\naffective ratings" = round(DG*100,2),
+  "Trait\nquestionnaires&Amygdala\ndown-regulation" = round(EG*100,3),
+  "Task-based\naffective ratings&Amygdala\ndown-regulation" = round(FG*100,2)
+)
+
+
 
 fit <- euler(defineOverlap)
 

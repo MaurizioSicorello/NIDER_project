@@ -155,6 +155,12 @@ netTwoAverage = apply_mask(fmriData_rating_clean, morawetzTwo);
 netTwoAverage = mean(netTwoAverage.dat);
 random_effects_meta_analysis(netTwoAverage', fmriData_rating_clean.covariates)
 
+% write data for Bayesian analyses
+study = cellstr(fmriData_rating_clean.image_names);
+NOI_outTable = table(study, fmriData_rating_clean.covariates, netOneAverage', netTwoAverage', ...
+    'VariableNames', {'study','sampleSize','networkOne','networkTwo'});
+writetable(NOI_outTable, '../../results/bayesfactors/NOI_rating.csv');
+
 % perform meta-analysis
 metaResults_rating = fmri_meta_analysis(fmriData_rating_clean)
 
@@ -170,6 +176,16 @@ tauImage_rating_grayMasked_minStud = mask_min_studies(tauImage_rating_grayMasked
 effectSizeImage_rating_fdr05 = threshold(apply_mask(effectSizeImage_rating_grayMasked_minStud, netMaskPrereg), .05, 'fdr')
 effectSizeImage_rating_fdr05 = threshold(apply_mask(effectSizeImage_rating_grayMasked_minStud, netMaskAll), .05, 'fdr')
 effectSizeImage_rating_fdr05 = threshold(effectSizeImage_rating_grayMasked_minStud, .05, 'fdr')
+
+%%%%% export Network data for Bayesian analyses and load for inspection
+fmriData_netAll = apply_mask(fmriData_rating_clean, netMaskAll)
+
+datVarNames = arrayfun(@num2str, 1:size(fmriData_netAll.dat',2), 'UniformOutput', false);
+datTable = array2table(fmriData_netAll.dat', 'VariableNames', datVarNames);
+datTable{:,:}(datTable{:,:} == 0) = NaN;
+WB_outTable = [table(study, fmriData_rating_clean.covariates), datTable];
+WB_outTable.Properties.VariableNames{2} = 'sampleSize';  
+writetable(WB_outTable, '../../results/bayesfactors/WB_rating.csv');
 
 write(effectSizeImage_rating_fdr05, 'fname', '..\..\results\images\statsImage_rating_thresh_withBrehl.nii', 'thresh')
 mean(apply_mask(effectSizeImage_rating_grayMasked_minStud, effectSizeImage_rating_fdr05).dat)
@@ -282,7 +298,6 @@ rating_effectSize_withoutBrehl = table(effectSizeImage_rating_fdr05.dat, effectS
 
 writetable(rating_effectSize, 'rating_effectSizes_withBrehl.csv')
 writetable(rating_effectSize_withoutBrehl, 'rating_effectSizes_withoutBrehl.csv')
-
 
 write(effectSizeImage_rating_fdr05, 'fname', '..\..\results\images\statsImage_rating_thresh_withoutBrehl.nii', 'thresh')
 mean(apply_mask(effectSizeImage_rating_grayMasked_minStud, effectSizeImage_rating_fdr05).dat)

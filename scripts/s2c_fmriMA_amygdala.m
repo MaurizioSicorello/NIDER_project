@@ -191,6 +191,8 @@ effectSizeImage_amygdala_fdr05 = threshold(apply_mask(effectSizeImage_amygdala_g
 effectSizeImage_amygdala_fdr05 = threshold(apply_mask(effectSizeImage_amygdala_grayMasked_minStud, netMaskAll), .05, 'fdr')
 effectSizeImage_amygdala_fdr05 = threshold(effectSizeImage_amygdala_grayMasked_minStud, .05, 'fdr')
 
+effectSizeImage_amygdala_bonf05 = threshold(effectSizeImage_amygdala_grayMasked_minStud, .05, 'bfr')
+
 write(effectSizeImage_amygdala_fdr05, 'fname', '..\..\results\images\statsImage_amygdala_thresh.nii', 'thresh')
 
 mean(apply_mask(effectSizeImage_amygdala_grayMasked_minStud, effectSizeImage_amygdala_fdr05).dat)
@@ -209,6 +211,94 @@ writetable (jackknife_amygdalas, 'jackknife_amygdalas.csv')
 jackknife_amygdalas =  readtable('jackknife_amygdalas3.csv')
 
 % histogram(jackknife_amygdalas.numSigEffects - 6, 20)
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% permutation test
+
+% create masked original data and results for speed
+fmriData_amygdala_clean_masked = apply_mask(fmriData_amygdala_clean, effectSizeImage_amygdala_grayMasked_minStud)
+metaResults_amygdala_perm_orig = fmri_meta_analysis_perm(fmriData_amygdala_clean_masked)
+
+% Parameters
+nPermutations = 1000;
+nStudies = size(fmriData_amygdala_clean_masked.dat, 2);
+outputFile = 'sign_flipping_results.txt';
+
+% Initialize output file (create if not exists)
+fid = fopen(outputFile, 'a');
+if fid == -1
+    error('Could not open results file for writing.');
+end
+fclose(fid);
+
+flippedData = fmriData_amygdala_clean_masked;
+
+% Start permutation loop
+for i = 1:nPermutations
+    try
+        fprintf('Running permutation %d / %d...\n', i, nPermutations);
+
+        % Generate sign flip mask and apply
+        signFlip = 2 * randi([0, 1], [1, nStudies]) - 1;  % Random ±1
+        flippedData.dat = fmriData_amygdala_clean_masked.dat .* signFlip;
+
+        % Call meta-analysis directly with the matrix
+        resultsObj = fmri_meta_analysis_perm(flippedData);
+
+        % ------- Large gray mask results -------
+        rVals = resultsObj.effectSizeImage.dat;
+        zVals = resultsObj.Zimage.dat;
+
+        [~, maxR_ind] = max(abs(rVals));
+        [~, maxZ_ind] = max(abs(zVals));
+
+        maxR = rVals(maxR_ind);
+        maxZ = zVals(maxZ_ind);
+
+        % ------- Sparse gray mask results -------
+        maskedR = apply_mask(resultsObj.effectSizeImage, gray_mask_sparse).dat;
+        maskedZ = apply_mask(resultsObj.Zimage, gray_mask_sparse).dat;
+
+        [~, maxR_ind_masked] = max(abs(maskedR));
+        [~, maxZ_ind_masked] = max(abs(maskedZ));
+
+        maxR_masked = maskedR(maxR_ind_masked);
+        maxZ_masked = maskedZ(maxZ_ind_masked);
+
+        % ------- Append all 8 values to results file -------
+        fid = fopen(outputFile, 'a');
+        fprintf(fid, '%.6f\t%d\t%.6f\t%d\t%.6f\t%d\t%.6f\t%d\n', ...
+            maxR, maxR_ind, maxZ, maxZ_ind, ...
+            maxR_masked, maxR_ind_masked, maxZ_masked, maxZ_ind_masked);
+        fclose(fid);
+
+    catch ME
+        warning('Permutation %d failed: %s', i, ME.message);
+        continue;
+    end
+end
+
+
+% load results
+perm_data = readmatrix('sign_flipping_results.txt'); % in results folder
+q95_maxR = quantile(abs(perm_data(:, 1)), 0.95);
+histogram(abs(perm_data(:, 1)))
+
+sum(abs(metaResults_amygdala_perm_orig.effectSizeImage.dat) >= q95_maxR)
+
+q95_maxZ = quantile(abs(perm_data(:, 3)), 0.95);
+histogram(abs(perm_data(:, 3)))
+
+sum(abs(metaResults_amygdala_perm_orig.Zimage.dat) >= q95_maxZ)
+
+metaResults_zThresh = metaResults_amygdala_perm_orig.effectSizeImage
+
+metaResults_zThresh.sig = (abs(metaResults_amygdala_perm_orig.Zimage.dat) >= q95_maxZ)
+orthviews(metaResults_zThresh)
+
+threshold(metaResults_amygdala_perm_orig.Zimage, [-1*q95_maxZ q95_maxZ], 'raw-outside')
+threshold(metaResults_amygdala_perm_orig.effectSizeImage, [-1*q95_maxR q95_maxR], 'raw-outside')
+
 
 
 

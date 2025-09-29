@@ -33,6 +33,7 @@ metaPower(effectSize=0.05, sampleSizes=df$`sample size quest`)
 
 effectiveN <- data.frame(voxels=c(1, 10, 100, 1000, 10000), effective = rep(1,5))
 
+
 effMethod = "liji"
 
 # for "small" correlation matrices
@@ -62,6 +63,14 @@ if(effMethod=="liji"){
 }
 
 
+dat20000 <- read.csv(here("results", "power", "data20000voxels.csv"))
+corr20000 <- fastCor(dat20000)
+
+t1 <- Sys.time()
+effectiveN_fullNet <- meff(corr20000, method = effMethod)
+t2 <- Sys.time()
+t2-t1
+# effective N is 53!
 
 
 ################################

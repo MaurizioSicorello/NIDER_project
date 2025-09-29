@@ -156,10 +156,10 @@ netTwoAverage = mean(netTwoAverage.dat);
 random_effects_meta_analysis(netTwoAverage', fmriData_rating_clean.covariates)
 
 % write data for Bayesian analyses
-study = cellstr(fmriData_rating_clean.image_names);
-NOI_outTable = table(study, fmriData_rating_clean.covariates, netOneAverage', netTwoAverage', ...
+ study = cellstr(fmriData_rating_clean.image_names);
+ NOI_outTable = table(study, fmriData_rating_clean.covariates, netOneAverage', netTwoAverage', ...
     'VariableNames', {'study','sampleSize','networkOne','networkTwo'});
-writetable(NOI_outTable, '../../results/bayesfactors/NOI_rating.csv');
+ writetable(NOI_outTable, '../../results/bayesfactors/NOI_rating.csv');
 
 % perform meta-analysis
 metaResults_rating = fmri_meta_analysis(fmriData_rating_clean)
@@ -189,6 +189,20 @@ writetable(WB_outTable, '../../results/bayesfactors/WB_rating.csv');
 
 write(effectSizeImage_rating_fdr05, 'fname', '..\..\results\images\statsImage_rating_thresh_withBrehl.nii', 'thresh')
 mean(apply_mask(effectSizeImage_rating_grayMasked_minStud, effectSizeImage_rating_fdr05).dat)
+
+fmriData_bf_rating = get_wh_image(fmriData_netAll, 1)
+fmriData_bf_rating.dat = readmatrix('../../results/bayesfactors/WB_rating_results.csv');
+
+H0_prior_prob = 0.5^(1/53)
+H1_prior_prob = 1-H0_prior_prob
+prior_odds = H1_prior_prob/H0_prior_prob
+
+fmriData_bf_rating_c = fmriData_bf_rating
+fmriData_bf_rating_c.dat = fmriData_bf_rating.dat * prior_odds;
+
+fmriData_bf_rating_c_thresh = threshold(fmriData_bf_rating_c, [3 Inf], 'raw-between')
+bf_r = autolabel_regions_using_atlas(region(fmriData_bf_rating_c_thresh));
+[~, ~, regTabOut_bf] = table(bf_r)
 
 r = autolabel_regions_using_atlas(region(effectSizeImage_rating_fdr05));
 montage(r, 'regioncenters', 'colormap');

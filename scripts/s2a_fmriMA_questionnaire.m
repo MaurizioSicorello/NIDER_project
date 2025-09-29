@@ -156,6 +156,10 @@ fmriData_quest_clean.covariates = fmriData_quest_clean.covariates(qualityInd)
 %%%%%%%%%%%%%
 % meta-analysis on average activity in networks of interest
 
+test = apply_mask(fmriData_quest_clean, netMaskAll);
+
+writematrix(test.dat', '20000voxels.csv')
+
 % first network
 netOneAverage = apply_mask(fmriData_quest_clean, morawetzOne);
 netOneAverage = mean(netOneAverage.dat);

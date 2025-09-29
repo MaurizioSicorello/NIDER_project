@@ -3,7 +3,7 @@
 
 
 # Reproducibility Notes
-This project uses Matlab and R. Clone this repository. All analysis scripts can be found in the "scripts" folder and the data in the "data" folder. 
+This project uses Matlab and R. All analysis scripts can be found in the "scripts" folder and the data in the "data" folder. 
 
 Matlab analyses require installing the CanlabCore Toolbox, which is available on github. Its installation section details the required dependencies (e.g., SPM). Further, the "functions" folder of this repository has to be on the matlab path for custom functions. To reproduce the results, start with the s2 scripts (i.e., skipping the preprocessing script "s1_reslice.m"). The runtime of an individual script should be about 20 minutes in total. We recommend running it section by section.
 

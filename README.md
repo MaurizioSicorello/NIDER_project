@@ -1,5 +1,5 @@
 # NIDER project
- Data and analyses for a collaborative meta-analysis on the Neurobiology of Individual Differences in Emotion Regulation.
+ Data and analyses code for a collaborative meta-analysis on the Neurobiology of Individual Differences in Emotion Regulation.
 
 
 # Reproducibility Notes

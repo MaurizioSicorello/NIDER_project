@@ -9,7 +9,7 @@ Matlab analyses require installing the CanlabCore Toolbox, which is available on
 
 Packages for R analyses are tracked with the renv package (via the respective renv folder on the top level). Open the "NIDER_project.Rproj" file on the top level. Then, install the "renv" package and use "renv::restore()". Then, open and use the R scripts from within this Rstudio environment.
 
-The folder "testAnalyses" contains tests on the meta-analysis functions.
+The folder "testAnalyses" contains tests on the meta-analysis functions, most directly in the subfolder "testMetaAnalysisCode". The most essential script is "testMetaAnalysisFunction.m". For a short demo, run "demoMA.m" (2 min.). This replicates Figure S5 in the Supplementary Information of the related main paper. 
 
 The OS was Microsoft Windows 11 Home. Analyses were performed using Matlab v2023b, the CanlabCore Toolbox (last tested on commit 884ef4c), and R version 4.3.2. Installation time is about an hour, mostly depending on the matlab installation time.
 

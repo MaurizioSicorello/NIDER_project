@@ -19,7 +19,7 @@ library("meta")
 library("metafor")
 library("WebPower")
 library("eulerr")
-library("flextable")
+#library("flextable")
 library("metaBMA")
 library("ggplot2")
 source(here("functions", "metaPoweR.R"))
@@ -82,6 +82,7 @@ dfcorrs <- dfcorrs %>%
   ))
 
 # Create a named vector for mapping
+
 author_mapping <- c(
   "Benzait et al. (2023)" = "Benzait et al. (2023)",
   "Berboth et al. (2021)" = "Berboth et al. (2021)",
@@ -103,16 +104,19 @@ author_mapping <- c(
   "LaBarUnpublished" = "LaBar et al. (unpublished)",
   "MarinMorales et al. (2021)" = "Marín-Morales et al. (2022)",
   "MinUnpublished" = "Min et al. (2022)",
+  
   "Morawetz et al. (2016a)" = "Morawetz et al. (2016)",
-  "Morawetz et al. (2016b)" = "Morawetz et al. (2016; pictures)",
-  "Morawetz et al. (2019)" = "Morawetz et al. (2016; videos)",
-  "Morawetz et al. (2020)" = "Morawetz et al. (2019)",
-  "Morawetz et al. (2021)" = "Morawetz et al. (2020)",
-  "MulejBratec et al. (2015)" = "Morawetz et al. (2021)",
-  "MuellerPinzlerUnpublished" = "Mulej Bratec et al. (2015)",
-  "HunekeUnpublished" = "Müller-Pinzler et al. (unpublished)",
-  "NetaUnpublished" = "Huneke et al. (unpublished)",
-  "Paschke et al. (2016)" = "Pierce et al. (2022)",
+  "Morawetz et al. (2016b)" = "Morawetz et al. (2016; pictures/videos)",
+  "Morawetz et al. (2019)" = "Morawetz et al. (2019)",
+  "Morawetz et al. (2020)" = "Morawetz et al. (2020)",
+  "Morawetz et al. (2021)" = "Morawetz et al. (2021)",
+  
+  "MulejBratec et al. (2015)" = "Mulej Bratec et al. (2015)",
+  "MuellerPinzlerUnpublished" = "Müller-Pinzler et al. (unpublished)",
+  "HunekeUnpublished" = "Huneke et al. (unpublished)",
+  "NetaUnpublished" = "Pierce et al. (2022)",
+  "Paschke et al. (2016)" = "Paschke et al. (2016)",
+  
   "Rehbein et al. (2021a)" = "Rehbein et al. (2021; sample 1)",
   "Rehbein et al. (2021b)" = "Rehbein et al. (2021; sample 2)",
   "Sandner et al. (2021)" = "Sandner et al. (2021)",
@@ -149,11 +153,29 @@ dfQuestSelf$`image name stem`
 meta_questSelf <- metacor(as.numeric(dfQuestSelf$questSelfRating), as.numeric(dfQuestSelf$'sample size quest'), method.tau = "DL", studlab = dfQuestSelf$`image name stem`)
 meta_questSelf
 
+metaPower(0.10, as.numeric(dfQuestSelf$'sample size quest'), 0.07)
+
 # plot results
 meta::forest(meta_questSelf)
 png(file=here("results", "figures", "forestplot_questSelf.png"), width = 800, height = 600)
 meta::forest(meta_questSelf)
 dev.off() 
+
+# nature plot
+png(
+  file = here("results", "figures", "forestplot_questSelf_nat.png"),
+  width = 18,
+  height = 20,
+  units = "cm",
+  res = 300
+)
+
+meta::forest(
+  meta_questSelf,
+  fontsize = 7
+)
+
+dev.off()
 
 
 # Bayes factors
@@ -171,7 +193,6 @@ tau2 <- 0.2^2/2
 effSize_prior_oneSide <- prior("custom", function(x) x^2/tau2 * dnorm(x, sd=sqrt(tau2)), 0, 1)
 effSize_prior_twoSide <- prior("custom", function(x) x^2/tau2 * dnorm(x, sd=sqrt(tau2)), -1, 1)
 tau_prior <- prior("t", c(location=0, scale=.15, nu=1), lower=0, upper=1)
-
 
 Bmeta_questSelf <- meta_bma(y=yi, SE=vi_sqrt, data=dfQuestSelf_conv,
                             d = effSize_prior_twoSide,
@@ -204,6 +225,22 @@ png(file=here("results", "figures", "forestplot_amyQuest.png"), width = 800, hei
 meta::forest(meta_amyQuest)
 dev.off() 
 
+# nature plot
+png(
+  file = here("results", "figures", "forestplot_amyQuest_nat.png"),
+  width = 18,
+  height = 22,
+  units = "cm",
+  res = 300
+)
+
+meta::forest(
+  meta_amyQuest,
+  fontsize = 7
+)
+
+dev.off()
+
 # Bayes factors
 dfAmyQuest$amyQuestCorr <- as.numeric(dfAmyQuest$amyQuestCorr) 
 
@@ -234,12 +271,26 @@ png(file=here("results", "figures", "forestplot_meta_amySelf.png"), width = 800,
 meta::forest(meta_amySelf)
 dev.off() 
 
+png(
+  file = here("results", "figures", "forestplot_meta_amySelf_nat.png"),
+  width = 18,
+  height = 18,
+  units = "cm",
+  res = 300
+)
+
+meta::forest(
+  meta_amySelf,
+  fontsize = 7
+)
+
+dev.off()
+
 # calculate average power
 wp.correlation(r = meta_amySelf$TE.random, power = 0.8)
 mean(sapply(meta_amySelf$n, function(x){wp.correlation(n = x, meta_amySelf$TE.random)$power}))
 sd(sapply(meta_amySelf$n, function(x){wp.correlation(n = x, meta_amySelf$TE.random)$power}))
 median(meta_amySelf$n)
-
 
 # Bayes factors
 dfAmySelf$amySelfRating <- as.numeric(dfAmySelf$amySelfRating) 
@@ -354,7 +405,7 @@ C = 1 - t(c(meta_amyQuest$TE.random, meta_amySelf$TE.random)) %*% solve(matrix(c
 D = ADEG - A - EG
 E = CEFG - C - FG
 F = BDFG - B - DG
-G = ifelse((DG - D) < 0, 0, (DF - D))
+G = ifelse((DG - D) < 0, 0, (DG - D))
 
 defineOverlap = c(
   "Questionnaire" = 100,  # Total variance for Questionnaire
@@ -381,11 +432,24 @@ fit <- euler(defineOverlap)
 library(RColorBrewer)
 myCol <- brewer.pal(3, "Pastel2")
 
-pdf(here("results", "figures", "venn_diagram.pdf"))
-plot(fit, fills = myCol, labels = list(fontsize=16))
+
+# pdf export
+pdf(
+  here("results", "figures", "venn_diagram_small.pdf"),
+  width = 9 / 2.54,
+  height = 9 / 2.54
+)
+plot(fit, fills = myCol, labels = list(fontsize = 8))
 dev.off()
 
-
+# svg export
+svg(
+  here("results", "figures", "venn_diagram_small.svg"),
+  width = 9 / 2.54,
+  height = 9 / 2.54
+)
+plot(fit, fills = myCol, labels = list(fontsize = 8))
+dev.off()
 
 
 r = 0.5
@@ -398,3 +462,164 @@ test = data.frame(r = c(0.5, 0.3, 0.1), n = c(50, 70, 90), this = c(1.5, 1.5, 1.
 
 summary(ma_r(rxyi = r, n = n, data = test, ))
 
+
+
+###########################################
+# studies with reappraisal capability questionnaires
+
+AHAB <- read.csv(here::here("data", "revisionData", "R4C2_spreadsheet_AHAB_withERQcap.csv"))
+AHAB$MeanAmygdala_rev <- (-1)*AHAB$MeanAmygdala
+AHAB$ratingSuccess <- AHAB$LookNeg_rating - AHAB$RegNeg_rating
+
+PIP <- read.csv(here::here("data", "revisionData", "R4C2_spreadsheet_PIP_withERQcap.csv"))
+PIP$MeanAmygdala_rev <- (-1)*PIP$MeanAmygdala
+PIP$ratingSuccess <- PIP$LookNeg_rating - PIP$RegNeg_rating
+
+
+######################
+# amygdala
+
+dat_quest_amy <- data.frame(
+  study = c("AHAB", "PIP", "MIN"),
+  r     = c(cor(AHAB$ERQcapabilities, AHAB$MeanAmygdala_rev), cor(PIP$ERQcapabilities, PIP$MeanAmygdala_rev), -.12),
+  n     = c(163, 176, 105)
+)
+
+m_fixed <- metacor(
+  cor = r,
+  n = n,
+  studlab = study,
+  data = dat_quest_amy,
+  sm = "ZCOR",
+  common = TRUE,
+  random = FALSE,
+  backtransf = TRUE
+)
+
+summary(m_fixed)
+
+
+# Bayesian MA
+dat_quest_amy_conv <- escalc(
+  measure = "ZCOR",
+  ri = r,
+  ni = n,
+  data = dat_quest_amy
+)
+
+dat_quest_amy_conv$vi_sqrt <- sqrt(dat_quest_amy_conv$vi)
+
+Bmeta_quest_amy <- meta_bma(
+  y = yi,
+  SE = vi_sqrt,
+  data = dat_quest_amy_conv,
+  d = effSize_prior_twoSide,
+  tau = tau_prior,
+  iter = 8000,
+  logml_iter = 5000,
+  rel.tol = .1,
+  summarize = "integrate"
+)
+
+Bmeta_quest_amy
+
+Bmeta_quest_amy <- meta_bma(
+  y = yi,
+  SE = vi_sqrt,
+  data = dat_quest_amy_conv,
+  d = effSize_prior_oneSide,
+  tau = tau_prior,
+  iter = 8000,
+  logml_iter = 5000,
+  rel.tol = .1,
+  summarize = "integrate"
+)
+
+Bmeta_quest_amy
+
+
+
+######################
+# Self-ratings
+
+dat_quest_rating <- data.frame(
+  study = c("AHAB", "PIP", "MIN"),
+  r     = c(cor(AHAB$ERQcapabilities, AHAB$ratingSuccess), cor(PIP$ERQcapabilities, PIP$ratingSuccess), 0.002),
+  n     = c(163, 176, 105)
+)
+
+
+m_fixed <- metacor(
+  cor = r,
+  n = n,
+  studlab = study,
+  data = dat_quest_rating,
+  sm = "ZCOR",
+  common = TRUE,
+  random = FALSE,
+  backtransf = TRUE
+)
+
+summary(m_fixed)
+
+# Bayesian MA
+dat_quest_rating_conv <- escalc(
+  measure = "ZCOR",
+  ri = r,
+  ni = n,
+  data = dat_quest_rating
+)
+
+dat_quest_rating_conv$vi_sqrt <- sqrt(dat_quest_rating_conv$vi)
+
+Bmeta_quest_rating <- meta_bma(
+  y = yi,
+  SE = vi_sqrt,
+  data = dat_quest_rating_conv,
+  d = effSize_prior_twoSide,
+  tau = tau_prior,
+  iter = 8000,
+  logml_iter = 5000,
+  rel.tol = .1,
+  summarize = "integrate"
+)
+
+Bmeta_quest_rating
+
+Bmeta_quest_rating <- meta_bma(
+  y = yi,
+  SE = vi_sqrt,
+  data = dat_quest_rating_conv,
+  d = effSize_prior_oneSide,
+  tau = tau_prior,
+  iter = 8000,
+  logml_iter = 5000,
+  rel.tol = .1,
+  summarize = "integrate"
+)
+
+Bmeta_quest_rating
+
+
+
+############################
+# questionnaire versions
+
+dat_quests <- data.frame(
+  study = c("AHAB", "PIP", "MIN"),
+  r     = c(cor(AHAB$ERQcapabilities, AHAB$ERQ), cor(PIP$ERQcapabilities, PIP$ERQ), 0.602),
+  n     = c(163, 176, 105)
+)
+
+m_fixed <- metacor(
+  cor = r,
+  n = n,
+  studlab = study,
+  data = dat_quests,
+  sm = "ZCOR",
+  common = TRUE,
+  random = FALSE,
+  backtransf = TRUE
+)
+
+summary(m_fixed)

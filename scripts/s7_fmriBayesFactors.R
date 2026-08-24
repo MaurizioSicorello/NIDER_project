@@ -25,6 +25,7 @@ convert_t <- function(t, N){
 
 
 
+
 ########################
 # average network activity
 
@@ -54,6 +55,35 @@ Bmeta_NOI_quest <- meta_bma(y=yi, SE=vi_sqrt, data=df_NOI_quest_conv_n1,
                             tau = tau_prior,
                             iter = 8000, logml_iter = 5000, rel.tol = .1, summarize="integrate")
 Bmeta_NOI_quest
+
+
+# ability questionnaires for revision
+
+df_NOI_quest <- read.csv(here("results", "bayesfactors", "NOI_quest_ability.csv"))
+
+# Network 1
+df_NOI_quest$networkOne <- convert_t(df_NOI_quest$networkOne, df_NOI_quest$sampleSize)
+df_NOI_quest_conv_n1 <- escalc(measure="ZCOR", ri=networkOne, ni=sampleSize, data=df_NOI_quest)
+df_NOI_quest_conv_n1$vi_sqrt <- sqrt(df_NOI_quest_conv_n1$vi)
+
+Bmeta_NOI_quest <- meta_bma(y=yi, SE=vi_sqrt, data=df_NOI_quest_conv_n1,
+                            d = effSize_prior_twoSide,
+                            tau = tau_prior,
+                            iter = 8000, logml_iter = 5000, rel.tol = .1, summarize="integrate")
+Bmeta_NOI_quest
+
+# Network 2
+df_NOI_quest$networkTwo <- convert_t(df_NOI_quest$networkTwo, df_NOI_quest$sampleSize)
+df_NOI_quest_conv_n1 <- escalc(measure="ZCOR", ri=networkTwo, ni=sampleSize, data=df_NOI_quest)
+df_NOI_quest_conv_n1$vi_sqrt <- sqrt(df_NOI_quest_conv_n1$vi)
+
+Bmeta_NOI_quest <- meta_bma(y=yi, SE=vi_sqrt, data=df_NOI_quest_conv_n1,
+                            d = effSize_prior_twoSide,
+                            tau = tau_prior,
+                            iter = 8000, logml_iter = 5000, rel.tol = .1, summarize="integrate")
+Bmeta_NOI_quest
+
+
 
 
 ############
@@ -96,7 +126,7 @@ run_meta <- function(voxel_data, sample_size) {
   sample_size <- sample_size[keep]
   
   # If too few studies remain, skip
-  if (length(voxel_data) < 20) return(NA_real_)
+  if (length(voxel_data) < 3) return(NA_real_)
   
   # Preprocessing
   voxel_conv <- convert_t(voxel_data, sample_size)
@@ -131,81 +161,86 @@ safe_run_meta <- function(voxel_data, sample_size) {
 
 # prepare df
 #df <- read.csv(here("results", "bayesfactors", "WB_quest.csv"))
-df <- read.csv(paste0(dirname(rstudioapi::getActiveDocumentContext()$path), "/WB_quest.csv"))
-
-sampleSize <- df$sampleSize
-datTable <- as.matrix(df[, -(1:2)])
-
-#datTable <- datTable[,1:14]
-
-plan(multisession, workers = availableCores() - 1)
-
-t1 <- Sys.time()
-
-BF_vector_quest <- with_progress({
-  
-  # define a progressor inside with_progress()
-  p <- progressor(along = seq_len(ncol(datTable)))
-  
-  future_sapply(
-    seq_len(ncol(datTable)),
-    function(j) {
-      p()  # increment progress bar
-      safe_run_meta(datTable[, j], sampleSize)
-    },
-    future.seed = TRUE
-  )
-})
-
-
-t2 <- Sys.time()
-t2-t1
-
-plan(sequential)
-
-#write.csv(BF_vector_quest, here("results", "bayesfactors", "WB_quest_results.csv"), row.names = FALSE)
-write.csv(BF_vector_quest, paste0(dirname(rstudioapi::getActiveDocumentContext()$path), "/WB_quest_results.csv"), row.names = FALSE)
-
+#df <- read.csv(paste0(dirname(rstudioapi::getActiveDocumentContext()$path), "/WB_quest.csv"))
+# df <- read.csv(here("results", "bayesfactors", "WB_quest_ability.csv"))
+# 
+# sampleSize <- df$sampleSize
+# datTable <- as.matrix(df[, -(1:2)])
+# 
+# #datTable <- datTable[,1:14]
+# 
+# plan(multisession, workers = availableCores() - 1)
+# 
+# t1 <- Sys.time()
+# 
+# BF_vector_quest <- with_progress({
+#   
+#   # define a progressor inside with_progress()
+#   p <- progressor(along = seq_len(ncol(datTable)))
+#   
+#   future_sapply(
+#     seq_len(ncol(datTable)),
+#     function(j) {
+#       p()  # increment progress bar
+#       safe_run_meta(datTable[, j], sampleSize)
+#     },
+#     future.seed = TRUE
+#   )
+# })
+# 
+# 
+# t2 <- Sys.time()
+# t2-t1
+# 
+# plan(sequential)
+# 
+# #write.csv(BF_vector_quest, here("results", "bayesfactors", "WB_quest_results.csv"), row.names = FALSE)
+# #write.csv(BF_vector_quest, paste0(dirname(rstudioapi::getActiveDocumentContext()$path), "/WB_quest_results.csv"), row.names = FALSE)
+# write.csv(BF_vector_quest, here("results", "bayesfactors", "WB_quest_results_ability.csv"), row.names = FALSE)
+# 
+# psych::describe(BF_vector_quest)
+# 
+# sum(is.na(datTable[1,]))
 
 ###########
 # ratings
 
-# prepare df
-#df <- read.csv(here("results", "bayesfactors", "WB_quest.csv"))
-df <- read.csv(paste0(dirname(rstudioapi::getActiveDocumentContext()$path), "/WB_rating.csv"))
-
-sampleSize <- df$sampleSize
-datTable <- as.matrix(df[, -(1:2)])
-
-#datTable <- datTable[,1:14]
-
-plan(multisession, workers = availableCores() - 1)
-
-t1 <- Sys.time()
-
-BF_vector_quest <- with_progress({
-  
-  # define a progressor inside with_progress()
-  p <- progressor(along = seq_len(ncol(datTable)))
-  
-  future_sapply(
-    seq_len(ncol(datTable)),
-    function(j) {
-      p()  # increment progress bar
-      safe_run_meta(datTable[, j], sampleSize)
-    },
-    future.seed = TRUE
-  )
-})
-
-
-t2 <- Sys.time()
-t2-t1
-
-plan(sequential)
-
-#write.csv(BF_vector_quest, here("results", "bayesfactors", "WB_quest_results.csv"), row.names = FALSE)
-write.csv(BF_vector_quest, paste0(dirname(rstudioapi::getActiveDocumentContext()$path), "/WB_rating_results.csv"), row.names = FALSE)
+# # prepare df
+# #df <- read.csv(here("results", "bayesfactors", "WB_quest.csv"))
+# df <- read.csv(paste0(dirname(rstudioapi::getActiveDocumentContext()$path), "/WB_rating.csv"))
+# 
+# sampleSize <- df$sampleSize
+# datTable <- as.matrix(df[, -(1:2)])
+# 
+# #datTable <- datTable[,1:14]
+# 
+# plan(multisession, workers = availableCores() - 1)
+# 
+# t1 <- Sys.time()
+# 
+# BF_vector_quest <- with_progress({
+#   
+#   # define a progressor inside with_progress()
+#   p <- progressor(along = seq_len(ncol(datTable)))
+#   
+#   future_sapply(
+#     seq_len(ncol(datTable)),
+#     function(j) {
+#       p()  # increment progress bar
+#       safe_run_meta(datTable[, j], sampleSize)
+#     },
+#     future.seed = TRUE
+#   )
+# })
+# 
+# 
+# t2 <- Sys.time()
+# t2-t1
+# 
+# plan(sequential)
+# 
+# #write.csv(BF_vector_quest, here("results", "bayesfactors", "WB_quest_results.csv"), row.names = FALSE)
+# write.csv(BF_vector_quest, paste0(dirname(rstudioapi::getActiveDocumentContext()$path), "/WB_rating_results.csv"), row.names = FALSE)
 
 
 ########################################################
@@ -213,6 +248,8 @@ write.csv(BF_vector_quest, paste0(dirname(rstudioapi::getActiveDocumentContext()
 
 bf_quests <- read.csv(here("results", "bayesfactors", "WB_quest_results.csv"))$x
 bf_ratings <- read.csv(here("results", "bayesfactors", "WB_rating_results.csv"))$x
+bf_quests2 <- read.csv(here("results", "bayesfactors", "WB_quest_results_ability.csv"))$x
+
 
 plot(bf_quests, bf_ratings)
 
@@ -224,6 +261,14 @@ prior_odds <- H1_prior_prob/H0_prior_prob
 # inspect questionnaire BFs
 sum(bf_quests < 0.33, na.rm =TRUE)
 sum(bf_quests > 3, na.rm =TRUE)
+
+bf_quests2 <- bf_quests2[!is.na(bf_quests2)]
+table(ifelse(bf_quests2>3, "h1", ifelse(bf_quests2 < 1/3, "h0", "inconcl.")))
+table(ifelse((bf_quests2*prior_odds)>3, "h1", ifelse((bf_quests2*prior_odds) < 1/3, "h0", "inconcl.")))
+psych::describe(bf_quests2*prior_odds)
+hist(bf_quests2[bf_quests2>3])
+
+max(bf_quests2*prior_odds)
 
 bf_quests_c <- bf_quests * prior_odds
 sum(bf_quests_c < 0.33, na.rm =TRUE)/length(bf_quests_c)
@@ -240,9 +285,13 @@ hist(bf_ratings[bf_ratings > 3 & !is.na(bf_ratings)])
 bf_ratings_c <- bf_ratings * prior_odds
 sum(bf_ratings_c < 0.01, na.rm =TRUE)/length(bf_ratings_c)
 sum(bf_ratings_c > 3, na.rm =TRUE)
+psych::describe(bf_ratings_c[bf_ratings_c < 0.33], na.rm =TRUE)
 
 sum(bf_ratings_c < 3 & bf_ratings_c > 1/3, na.rm =TRUE)
+psych::describe(bf_ratings_c[bf_ratings_c < 3 & bf_ratings_c > 1/3], na.rm =TRUE)
 
 bf_ratings_c[bf_ratings_c > 3 & !is.na(bf_ratings)]
+psych::describe(bf_ratings_c[bf_ratings_c > 3], na.rm =TRUE)
 
-
+sum(bf_ratings > 3 & !is.na(bf_ratings))
+psych::describe(bf_ratings[bf_ratings > 3], na.rm =TRUE)

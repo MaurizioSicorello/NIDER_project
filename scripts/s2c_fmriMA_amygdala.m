@@ -3,6 +3,7 @@
 
 % Load an prepare masks
 
+
 % MNI image 
 cd('..\data\masks')
 MNIimage = fmri_data('MNI152_T1_2mm_brain_mask.nii')

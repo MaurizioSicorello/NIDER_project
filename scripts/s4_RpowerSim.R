@@ -14,6 +14,11 @@ library("clusterGeneration")
 library("corpcor")
 library("Hmisc")
 library("ggplot2")
+library("readr")
+library("dplyr")
+library("tidyr")
+library("stringr")
+library("scales")
 source(here("functions", "metaPoweR.R"))
 
 df <- read_excel(here::here("data", "studyInformation", "studyInformation_publication.xlsx"))
@@ -25,7 +30,7 @@ library(Matrix)
 
 ################################
 # test power function
-metaPower(effectSize=0.05, sampleSizes=df$`sample size quest`)
+metaPower(effectSize=0.10, tau=0.06, sampleSizes=df$`sample size quest`)
 
 
 ################################
@@ -186,3 +191,111 @@ ggsave(here("results", "figures", "powerPlot.png"))
 
 
 metaPower(effectSize=0.125, sampleSizes=df$`sample size quest`, tau = 0, alpha = 0.05/20000, numTruePositives = 1)
+
+
+
+
+
+
+#########################################
+# plot cluster-insertion simulation
+
+
+# ------------------------------------------------------------------
+# file names
+# ------------------------------------------------------------------
+file_t_006 <- here("results", "power", "simulation_results_r0.10_t0.06.csv")
+file_t_008 <- here("results", "power", "simulation_results_r0.10_t0.08.csv")
+
+# ------------------------------------------------------------------
+# helper
+# ------------------------------------------------------------------
+read_power_run <- function(file, tau_label) {
+  
+  dat <- read_csv(file, show_col_types = FALSE)
+  
+  tibble(
+    scenario = factor(c("1", "2", "3", "4"), levels = c("1", "2", "3", "4")),
+    voxels_total = c("800", "1300", "1600", "1800"),
+    ROI = c(mean(dat$pow1_reg), mean(dat$pow2_reg), mean(dat$pow3_reg), mean(dat$pow4_reg)),
+    Whole_brain = c(mean(dat$pow1_all), mean(dat$pow2_all), mean(dat$pow3_all), mean(dat$pow4_all))
+  ) %>%
+    pivot_longer(
+      cols = c(ROI, Whole_brain),
+      names_to = "scope",
+      values_to = "power"
+    ) %>%
+    mutate(
+      tau = tau_label,
+      x_lab = factor(
+        paste0("Clusters: ", scenario, "\nVoxels: ", voxels_total),
+        levels = paste0(
+          "Clusters: ", c("1", "2", "3", "4"),
+          "\nVoxels: ", c("800", "1300", "1600", "1800")
+        )
+      )
+    )
+}
+
+plot_dat <- bind_rows(
+  read_power_run(file_t_006, "τ = .06"),
+  read_power_run(file_t_008, "τ = .08")
+)
+
+# ------------------------------------------------------------------
+# plot
+# ------------------------------------------------------------------
+p <- ggplot(
+  plot_dat,
+  aes(
+    x = x_lab,
+    y = power,
+    color = scope,
+    linetype = tau,
+    group = interaction(scope, tau)
+  )
+) +
+  geom_hline(yintercept = .80, linewidth = 0.5, linetype = "dashed", color = "grey40") +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 2.6) +
+  scale_y_continuous(
+    limits = c(0, 1),
+    breaks = seq(0, 1, 0.1),
+    labels = label_percent(accuracy = 1)
+  ) +
+  scale_color_manual(
+    values = c("ROI" = "#1b9e77", "Whole_brain" = "#d95f02"),
+    labels = c("Network of Interest", "Whole-brain")
+  ) +
+  scale_linetype_manual(
+    values = c("τ = .06" = "solid", "τ = .08" = "longdash")
+  ) +
+  labs(
+    x = NULL,
+    y = "Power",
+    color = NULL,
+    linetype = NULL
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    axis.title.y = element_text(face = "bold"),
+    axis.text.x = element_text(size = 10, lineheight = 0.95),
+    legend.position = "right"
+  ) +
+  theme(legend.position = "inside", legend.position.inside = c(0.9, 0.08), legend.justification = c(1, 0)) +
+  guides(
+    color = guide_legend(order = 1),
+    linetype = guide_legend(order = 2,
+                            override.aes = list(color = "black", linewidth = 1.4),
+                            keywidth = unit(1.8, "cm"))
+  )
+
+p
+
+ggsave(
+  filename = here("results", "figures", "power_simulation_cluster.png"),
+  plot = p,
+  width = 7,
+  height = 4.5,
+  dpi = 300
+)

@@ -330,6 +330,9 @@ regTabOut.Sign = [];
 cd('..\..\results\tables\')
 writetable(regTabOut, 'regionTable_rating_withoutBrehl.xlsx');
 
+effectSizeImage_rating_fdr05 = statistic_image('..\..\results\images\statsImage_rating_thresh_withoutBrehl.nii')
+
+[image_by_feature_correlations, top_feature_tables] = neurosynth_feature_labels(fmri_data(effectSizeImage_rating_grayMasked_minStud), 'images_are_replicates', false, 'noverbose');
 [image_by_feature_correlations, top_feature_tables] = neurosynth_feature_labels(fmri_data(effectSizeImage_rating_fdr05), 'images_are_replicates', false, 'noverbose');
 [image_by_feature_correlations, top_feature_tables] = neurosynth_feature_labels(fmri_data(ttest(fmriData_rating_clean)), 'images_are_replicates', false, 'noverbose');
 

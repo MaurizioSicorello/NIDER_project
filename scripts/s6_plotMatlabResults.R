@@ -49,12 +49,26 @@ jackknife_rating <- read.csv(here::here("results", "tables", "jackknife_ratings.
 ggplot(data=jackknife_rating, aes(x=numSigEffects)) +
   geom_histogram(colour="black") +
   theme_classic() +
-  ylab("Absolute Study Frequency") +
-  xlab("# Significant Voxels after Study Inclusion")
+  ylab("Number of studies") +
+  xlab("Number of significant Voxels after study exclusion") +
+  theme_classic(base_size = 7) +
+  theme(
+    axis.title = element_text(size = 7),
+    axis.text = element_text(size = 6)
+  )
 
 
 ggsave(here::here("results", "figures", "jackknife_ratings.png"))
 ggsave(here::here("results", "figures", "jackknife_ratings.svg"))
+
+ggsave(
+  filename = here::here("results", "figures", "jackknife_ratings_nat.png"),
+  width = 9,
+  height = 7,
+  units = "cm",
+  dpi = 300,
+  bg = "white"
+)
 
 
 
@@ -62,15 +76,30 @@ ggsave(here::here("results", "figures", "jackknife_ratings.svg"))
 effSize_amy <- read.csv(here::here("results", "tables", "amygdala_effectSizes.csv"))
 
 ggplot(data=effSize_amy, aes(x=effectSizes_quest)) +
-  geom_histogram(colour="black", binwidth=0.01) +
+  geom_histogram(colour="black", binwidth=0.01) + 
+  geom_vline(xintercept = 0, color = "grey70", linewidth = 0.4) +
   theme_classic() +
-  ylab("Absolute Frequency") +
-  xlab("Correlations of Amygdala and remaining brain (between-person)") +
-  xlim(c(-1, 1))
+  ylab("Number of voxels") +
+  xlab("Between-person correlations between amygdala activation \n and the rest of the brain") +
+  xlim(c(-1, 1)) +
+  theme_classic(base_size = 7) +
+  theme(
+    axis.title = element_text(size = 7),
+    axis.text = element_text(size = 6)
+  )
 
 
 ggsave(here::here("results", "figures", "amygdala_effectSizes.png"))
 ggsave(here::here("results", "figures", "amygdala_effectSizes.svg"))
+
+ggsave(
+  filename = here::here("results", "figures", "amygdala_effectSizes_nat.png"),
+  width = 9,
+  height = 7,
+  units = "cm",
+  dpi = 300,
+  bg = "white"
+)
 
 round(mean(effSize_amy$effectSizes_quest), 2)
 round(range(effSize_amy$effectSizes_quest), 2)

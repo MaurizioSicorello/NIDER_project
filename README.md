@@ -1,5 +1,5 @@
 # NIDER project
- Data and analyses for a collaborative meta-analysis on the Neurobiology of Individual Differences in Emotion Regulation.
+ Data and analyses code for a collaborative meta-analysis on the Neurobiology of Individual Differences in Emotion Regulation.
 
 
 # Reproducibility Notes
@@ -12,3 +12,5 @@ Packages for R analyses are tracked with the renv package (via the respective re
 The folder "testAnalyses" contains tests on the meta-analysis functions.
 
 The OS was Microsoft Windows 11 Home. Analyses were performed using Matlab v2023b, the CanlabCore Toolbox (last tested on commit 884ef4c), and R version 4.3.2. Installation time is about an hour, mostly depending on the matlab installation time.
+
+The custom code is released under the MIT License.
